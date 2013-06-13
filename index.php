@@ -1,5 +1,13 @@
 <?php
 
+spl_autoload_register(function($class) {
+    include str_replace('\\', DIRECTORY_SEPARATOR, $class) .'.php';
+    return true;
+});
+
+
+use QR\MaskPatterns;
+
 class QR {
     protected $code = array();
     protected $version;
@@ -12,11 +20,6 @@ class QR {
     const CHARSET_LATIN        = 2;
     const CHARSET_KANJI        = 3;
     
-    // Error Correction Level
-    const ECL_L = 1; // 7%
-    const ECL_M = 0; // 15%
-    const ECL_Q = 3; // 25%
-    const ECL_H = 2; // 30%
     
     /**
      * The following is the list of Alphanumeric characters with their associated
@@ -91,7 +94,7 @@ class QR {
         $this->version = $version;
         $this->size = 17 + ($version * 4);
         
-        $this->code = array_fill(0, $this->size, array_fill(0, $this->size, 0));
+        $this->code = array_fill(0, $this->size, array_fill(0, $this->size, null));
         return $this;
     }
     
@@ -235,7 +238,7 @@ class QR {
         echo '<pre>';
         foreach ($this->code as $a) {
             foreach ($a as $b) {
-                echo $b;
+                echo is_null($b) ? '_' : $b;
             }
             echo '<br />';
         }

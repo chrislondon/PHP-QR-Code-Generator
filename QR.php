@@ -12,12 +12,6 @@ class QR {
     const CHARSET_LATIN        = 2;
     const CHARSET_KANJI        = 3;
     
-    // Error Correction Level
-    const ECL_L = 1; // 7%
-    const ECL_M = 0; // 15%
-    const ECL_Q = 3; // 25%
-    const ECL_H = 2; // 30%
-    
     /**
      * The following is the list of Alphanumeric characters with their associated
      * character value.
@@ -35,8 +29,7 @@ class QR {
              ->addFinderPatterns()
              ->addTimingPattern()
              ->addAlignmentPatterns()
-             ->addVersionInformation()
-             ->addFormatInformation();
+             ->addVersionInformation();
     }
     
     public function determineCharSet($string) {
@@ -51,40 +44,6 @@ class QR {
         }
         
         return $this;
-    }
-    
-    public function addFormatInformation() {
-        $formatInformation = array_fill(0, 15, 0);
-        
-        // TODO actually figure out format information
-        
-        $fragment = array_reverse(array_slice($formatInformation, 0, 8));
-        $this->addPattern($fragment, 8, $this->size - 8);
-        
-        $fragment = array();
-        for ($i = 8; $i < 15; $i++) {
-            $fragment[] = array($formatInformation[$i]);
-        }
-        $this->addPattern($fragment, $this->size - 7, 8);
-        
-        $fragment = array();
-        for ($i = 0; $i < 6; $i++) {
-            $fragment[] = array($formatInformation[$i]);
-        }
-        $this->addPattern($fragment, 0, 8);
-        
-        $fragment = array();
-        for ($i = 6; $i < 8; $i++) {
-            $fragment[] = array($formatInformation[$i]);
-        }
-        $this->addPattern($fragment, 7, 8);
-        
-        $this->markCode(8, 7, $formatInformation[8]);
-        
-        $fragment = array_reverse(array_slice($formatInformation, 9, 6));
-        $this->addPattern($fragment, 8, 0);
-        
-        $this->markCode(4 * $this->version + 9, 8, 1);
     }
     
     public function createBlankCode($version) {
@@ -114,8 +73,8 @@ class QR {
     
     public function addTimingPattern() {
         for ($i = 8; $i < $this->size - 8; $i++) {
-            $this->markCode(6, $i, ($i + 1) % 2);
-            $this->markCode($i, 6, ($i + 1) % 2);
+            $this->code[6][$i] = ($i + 1) % 2;
+            $this->code[$i][6] = ($i + 1) % 2;
         }
         
         return $this;
@@ -205,30 +164,20 @@ class QR {
         
         $this->addPattern($horizontalPattern, $this->size - 11, 0);
         $this->addPattern($verticalPattern, 0, $this->size - 11);
-        
-        return $this;
     }
     
-    public function addPattern($pattern, $i, $j, $centered = false) {
+    public function addPattern($pattern, $x, $y, $centered = false) {
         if ($centered) {
-            $i -= floor(count($pattern) / 2);
-            $j -= floor(count($pattern[0]) / 2);
+            $x -= floor(count($pattern) / 2);
+            $y -= floor(count($pattern[0]) / 2);
         }
         
-        foreach ($pattern as $i1 => $a) {
-            if (!is_array($a)) {
-                $this->markCode($i, $i1 + $j, $a);
-            } else {
-                foreach ($a as $j1 => $b) {
-                    $this->markCode($i1 + $i, $j1 + $j, $b);
-                }
-            }
+        foreach ($pattern as $x1 => $a) {
+            foreach ($a as $y1 => $b) {
+                $this->code[$x1 + $x][$y1 + $y] = $b;
+            }    
         }
         return $this;
-    }
-    
-    public function markCode($i, $j, $value) {
-        $this->code[$i][$j] = $value;
     }
     
     public function printCode() {
@@ -243,6 +192,3 @@ class QR {
         echo '</pre>';
     }    
 }
-
-$qr = new QR(isset($_GET['s']) ? $_GET['s'] : 'test', isset($_GET['v']) ? $_GET['v'] : 1);
-$qr->printCode();

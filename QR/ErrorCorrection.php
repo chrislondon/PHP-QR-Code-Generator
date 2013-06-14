@@ -5,12 +5,15 @@ namespace QR;
 class ErrorCorrection {
     
     // Error Correction Level
-    const ECL_L = 1; // 7%
-    const ECL_M = 0; // 15%
-    const ECL_Q = 3; // 25%
-    const ECL_H = 2; // 30%
+    const ECL_L = 'L'; // 7%
+    const ECL_M = 'M'; // 15%
+    const ECL_Q = 'Q'; // 25%
+    const ECL_H = 'H'; // 30%
     
-    protected $defaultECL = QR::ECL_L;
+    public static function getLevel($level) {
+        $errorCorrection = 'QR\\ErrorCorrections\\Correction' . $level;
+        return new $errorCorrection();
+    }
     
     // Number of erasures and errors correctable is:
     // $e + 2 * $t <= $d - $p

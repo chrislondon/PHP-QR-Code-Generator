@@ -8,7 +8,7 @@ use QR\ErrorCorrection;
 use QR\MaskPatterns;
 
 spl_autoload_register(function($class) {
-    include str_replace('\\', DIRECTORY_SEPARATOR, $class) .'.php';
+    include dirname(__DIR__) . '/' . str_replace('\\', DIRECTORY_SEPARATOR, $class) .'.php';
     return true;
 });
 

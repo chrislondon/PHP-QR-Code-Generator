@@ -19,8 +19,7 @@ class QR {
         // Add our string to the code
         $code->setString($string);
         
-        $charsets = new Charsets();
-        $code->setCharset($charsets->getCharset($string));
+        $code->setCharset(Charsets::getCharset($string));
         
         // Inject error corrector into code
         $code->setErrorCorrection(ErrorCorrection::getLevel($errorCorrectionLevel));

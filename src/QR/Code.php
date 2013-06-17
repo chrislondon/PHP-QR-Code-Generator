@@ -3,14 +3,14 @@
 namespace QR;
 
 use Exception;
-use QR\Charsets\CharsetInterface;
+use QR\Charsets\CharsetAbstract;
 use QR\Code;
 use QR\ErrorCorrections\CorrectionInterface;
 use QR\MaskPatterns\MaskPatternInterface;
 
 class Code {
     /**
-     * @var CharsetInterface
+     * @var CharsetAbstract
      */
     protected $charset;
     
@@ -44,7 +44,7 @@ class Code {
         $this->mask = $mask;
     }
     
-    public function setCharset(CharsetInterface $charset) {
+    public function setCharset(CharsetAbstract $charset) {
         $this->charset = $charset;
     }
     

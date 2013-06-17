@@ -2,10 +2,10 @@
 
 namespace QR\Charsets;
 
-use QR\Charsets\CharsetInterface;
+use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
-class CharsetKanji extends CharsetInterface {
+class CharsetKanji extends CharsetAbstract {
     protected $versionCount = array(
         1 => array(
             ErrorCorrection::ECL_L => 10,
@@ -250,7 +250,6 @@ class CharsetKanji extends CharsetInterface {
     );
     
     public function matches($string) {
-        // TODO actually check this
-        return true;
+        return (bool)preg_match('/[^\wぁ-ゔァ-ヺー\x{4E00}-\x{9FAF}_\-]+/u', $string);
     }
 }

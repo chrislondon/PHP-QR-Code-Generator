@@ -17,7 +17,7 @@ class MaskPatterns {
     const MASK_110 = 6; // ((i * j) % 2 + (i * j) % 3) % 2 = 0
     const MASK_111 = 7; // ((i * j) % 3 + (i * j) % 2) % 2 = 0
 
-    public static function getMasks() {
+    protected static function getMasks() {
         $masks = array();
         $obj = new ReflectionClass('QR\\MaskPatterns');
         

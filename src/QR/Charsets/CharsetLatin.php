@@ -2,10 +2,10 @@
 
 namespace QR\Charsets;
 
-use QR\Charsets\CharsetInterface;
+use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
-class CharsetLatin extends CharsetInterface {
+class CharsetLatin extends CharsetAbstract {
     // TODO Fix these numbers http://www.qrcode.com/en/about/version.html
     protected $versionCount = array(
         1 => array(
@@ -251,7 +251,6 @@ class CharsetLatin extends CharsetInterface {
     );
     
     public function matches($string) {
-        // TODO actually check this
-        return true;
+        return (bool)preg_match('/[\x00-\xFF]/', $string);
     }
 }

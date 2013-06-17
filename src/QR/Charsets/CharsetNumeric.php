@@ -2,10 +2,10 @@
 
 namespace QR\Charsets;
 
-use QR\Charsets\CharsetInterface;
+use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
-class CharsetNumeric extends CharsetInterface {
+class CharsetNumeric extends CharsetAbstract {
     protected $versionCount = array(
         1 => array(
             ErrorCorrection::ECL_L => 41,
@@ -250,6 +250,6 @@ class CharsetNumeric extends CharsetInterface {
     );
     
     public function matches($string) {
-        return preg_match('/^[0-9]+$/', $string);
+        return (bool)preg_match('/^[0-9]+$/', $string);
     }
 }

@@ -2,9 +2,7 @@
 
 use QR\Charsets\CharsetAlpha;
 
-require_once __DIR__ . '/../../../src/QR/Charsets/CharsetAbstract.php';
-require_once __DIR__ . '/../../../src/QR/Charsets/CharsetAlpha.php';
-require_once __DIR__ . '/../../../src/QR/ErrorCorrection.php';
+require_once __DIR__ . '/../../../src/QR/QR.php';
 
 class CharsetAlphaTest extends PHPUnit_Framework_TestCase {
     public $charset;

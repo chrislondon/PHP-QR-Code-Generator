@@ -8,6 +8,10 @@ use QR\ErrorCorrection;
 use QR\MaskPatterns;
 
 spl_autoload_register(function($class) {
+    if (substr($class, 0, 3) != 'QR\\') {
+        return false;
+    }
+
     include dirname(__DIR__) . '/' . str_replace('\\', DIRECTORY_SEPARATOR, $class) .'.php';
     return true;
 });

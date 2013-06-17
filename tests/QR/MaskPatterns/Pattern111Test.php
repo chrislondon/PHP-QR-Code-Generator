@@ -2,8 +2,7 @@
 
 use QR\MaskPatterns\Pattern111;
 
-require_once __DIR__ . '/../../../src/QR/MaskPatterns/MaskPatternInterface.php';
-require_once __DIR__ . '/../../../src/QR/MaskPatterns/Pattern111.php';
+require_once __DIR__ . '/../../../src/QR/QR.php';
 
 class Pattern111Test extends PHPUnit_Framework_TestCase {
     public $pattern;

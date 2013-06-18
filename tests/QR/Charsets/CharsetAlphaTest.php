@@ -8,7 +8,7 @@ class CharsetAlphaTest extends PHPUnit_Framework_TestCase {
     public $charset;
     
     public function SetUp() {
-        $this->charset = new CharsetAlpha();
+        $this->charset = new CharsetAlpha;
     }
     
     public function testMatches() {

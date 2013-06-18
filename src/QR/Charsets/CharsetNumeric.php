@@ -6,6 +6,51 @@ use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
 class CharsetNumeric extends CharsetAbstract {
+    protected $modeIndicator = '0001';
+    
+    protected $codewordCounts = array(
+        1 => 19,
+        2 => 34,
+        3 => 55,
+        4 => 80,
+        5 => 108,
+        6 => 136,
+        7 => 156,
+        8 => 194,
+        9 => 232,
+        10 => 274,
+        11 => 324,
+        12 => 370,
+        13 => 428,
+        14 => 461,
+        15 => 523,
+        16 => 589,
+        17 => 647,
+        18 => 721,
+        19 => 795,
+        20 => 861,
+        21 => 932,
+        22 => 1006,
+        23 => 1094,
+        24 => 1174,
+        25 => 1276,
+        26 => 1370,
+        27 => 1468,
+        28 => 1531,
+        29 => 1631,
+        30 => 1735,
+        31 => 1843,
+        32 => 1955,
+        33 => 2071,
+        34 => 2191,
+        35 => 2306,
+        36 => 2434,
+        37 => 2566,
+        38 => 2702,
+        39 => 2812,
+        40 => 2956,
+    );
+    
     protected $versionCount = array(
         1 => array(
             ErrorCorrection::ECL_L => 41,
@@ -251,5 +296,17 @@ class CharsetNumeric extends CharsetAbstract {
     
     public function matches($string) {
         return (bool)preg_match('/^[0-9]+$/', $string);
+    }
+    
+    public function getCharacterCountBits($version) {
+        if ($version >= 1 && $version <= 9) {
+            return 10;
+        } elseif ($version >= 10 && $version <= 26) {
+            return 12;   
+        } elseif ($version >= 27 && $version <= 40) {
+            return 14;
+        }
+        
+        throw new Exception('Invalid version/mode');
     }
 }

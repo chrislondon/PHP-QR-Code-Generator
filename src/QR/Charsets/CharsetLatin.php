@@ -6,6 +6,51 @@ use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
 class CharsetLatin extends CharsetAbstract {
+    protected $modeIndicator = '0100';
+    
+    protected $codewordCounts = array(
+        1 => 13,
+        2 => 22,
+        3 => 34,
+        4 => 48,
+        5 => 62,
+        6 => 76,
+        7 => 88,
+        8 => 110,
+        9 => 132,
+        10 => 154,
+        11 => 180,
+        12 => 106,
+        13 => 244,
+        14 => 261,
+        15 => 295,
+        16 => 325,
+        17 => 367,
+        18 => 397,
+        19 => 445,
+        20 => 485,
+        21 => 512,
+        22 => 568,
+        23 => 614,
+        24 => 664,
+        25 => 718,
+        26 => 754,
+        27 => 808,
+        28 => 871,
+        29 => 911,
+        30 => 985,
+        31 => 1033,
+        32 => 1115,
+        33 => 1171,
+        34 => 1231,
+        35 => 1286,
+        36 => 1354,
+        37 => 1426,
+        38 => 1502,
+        39 => 1582,
+        40 => 1666,
+    );
+    
     // TODO Fix these numbers http://www.qrcode.com/en/about/version.html
     protected $versionCount = array(
         1 => array(
@@ -252,5 +297,17 @@ class CharsetLatin extends CharsetAbstract {
     
     public function matches($string) {
         return (bool)preg_match('/[\x00-\xFF]/', $string);
+    }
+    
+    public function getCharacterCountBits($version) {
+        if ($version >= 1 && $version <= 9) {
+            return 8;
+        } elseif ($version >= 10 && $version <= 26) {
+            return 16;   
+        } elseif ($version >= 27 && $version <= 40) {
+            return 16;
+        }
+        
+        throw new Exception('Invalid version/mode');
     }
 }

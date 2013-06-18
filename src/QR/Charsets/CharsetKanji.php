@@ -6,6 +6,51 @@ use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
 
 class CharsetKanji extends CharsetAbstract {
+    protected $modeIndicator = '1000';
+    
+    protected $codewordCounts = array(
+        1 => 9,
+        2 => 16,
+        3 => 26,
+        4 => 36,
+        5 => 46,
+        6 => 60,
+        7 => 66,
+        8 => 86,
+        9 => 100,
+        10 => 122,
+        11 => 140,
+        12 => 158,
+        13 => 180,
+        14 => 197,
+        15 => 223,
+        16 => 253,
+        17 => 283,
+        18 => 313,
+        19 => 341,
+        20 => 385,
+        21 => 406,
+        22 => 442,
+        23 => 464,
+        24 => 514,
+        25 => 538,
+        26 => 596,
+        27 => 628,
+        28 => 661,
+        29 => 701,
+        30 => 745,
+        31 => 793,
+        32 => 845,
+        33 => 901,
+        34 => 961,
+        35 => 986,
+        36 => 1054,
+        37 => 1096,
+        38 => 1142,
+        39 => 1222,
+        40 => 1276
+    );
+    
     protected $versionCount = array(
         1 => array(
             ErrorCorrection::ECL_L => 10,
@@ -251,5 +296,17 @@ class CharsetKanji extends CharsetAbstract {
     
     public function matches($string) {
         return (bool)preg_match('/[^\wぁ-ゔァ-ヺー\x{4E00}-\x{9FAF}_\-]+/u', $string);
+    }
+    
+    public function getCharacterCountBits($version) {
+        if ($version >= 1 && $version <= 9) {
+            return 8;
+        } elseif ($version >= 10 && $version <= 26) {
+            return 10;   
+        } elseif ($version >= 27 && $version <= 40) {
+            return 12;
+        }
+        
+        throw new Exception('Invalid version/mode');
     }
 }

@@ -2,12 +2,7 @@
 
 namespace QR;
 
-class Charsets {
-    const CHARSET_NUMERIC = 0;
-    const CHARSET_ALPHA   = 1;
-    const CHARSET_LATIN   = 2;
-    const CHARSET_KANJI   = 3;
-    
+class Charsets {    
     public static function getCharset($string) {
         $charsets = array();
         

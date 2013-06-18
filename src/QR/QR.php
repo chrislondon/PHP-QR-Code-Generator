@@ -5,7 +5,7 @@ namespace QR;
 use QR\Charsets;
 use QR\Code;
 use QR\ErrorCorrection;
-use QR\MaskPatterns;
+use QR\Printers\PrinterHTML;
 
 spl_autoload_register(function($class) {
     if (substr($class, 0, 3) != 'QR\\') {
@@ -35,7 +35,7 @@ class QR {
             $code->determineVersion();
         }
         
-        MaskPatterns::setBest($code);
+        $code->setPrinter(new PrinterHTML);
         
         $code->process();
         

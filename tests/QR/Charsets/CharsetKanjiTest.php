@@ -12,6 +12,6 @@ class CharsetKanjiTest extends PHPUnit_Framework_TestCase {
     }
     
     public function testMatches() {
-        $this->assertTrue($this->charset->matches('ｳﾞｶﾞｷﾞｸﾞ'));
+        $this->assertTrue($this->charset->matches('畑 はたけ'));
     }
 }

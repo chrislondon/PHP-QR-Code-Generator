@@ -11,17 +11,32 @@ PHP class for generating QR codes, created and maintained by [Chris London](http
 
 PHP QR Code Generator has many configurable pieces. To make usage simple the QR class instantiates a bunch of defaults.  You can use it like this:
 
-#### <?php
-####     include('../src/QR/QR.php');
-####
-####     $qrCode = QR\QR::generate('1234567890');
-####     $qrCode->printCode();
+```php
+<?php
+    include('../src/QR/QR.php');
+
+    $qrCode = QR\QR::generate('1234567890');
+    $qrCode->printCode();
+```
+
+## Todos
+
+The big todos left for this projet are:
+
+- [X] generate error codewords
+- [ ] implement mask patterns
+- [ ] test generated qr code
+- [ ] implement code word blocks
+- [ ] implement alphanumeric and latin character sets
+- [ ] implement multiple character set streams
 
 ## Developing PHP QR Code Generator
 
 The only tool we are currently using for development is PHPUnit. You can install all of the project's dependencies by using composer:
 
-#### composer install
+````
+composer install
+````
 
 At the moment we are not far enough in the releases to create an actual release. Development is currently happening on the master branch.  Feel free to open a pull request on the master branch.
 

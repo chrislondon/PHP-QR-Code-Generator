@@ -19,17 +19,6 @@ PHP QR Code Generator has many configurable pieces. To make usage simple the QR 
     $qrCode->printCode();
 ```
 
-## Todos
-
-The big todos left for this projet are:
-
-- [x] generate error codewords
-- [ ] implement mask patterns
-- [ ] test generated qr code
-- [ ] implement code word blocks
-- [ ] implement alphanumeric and latin character sets
-- [ ] implement multiple character set streams
-
 ## Developing PHP QR Code Generator
 
 The only tool we are currently using for development is PHPUnit. You can install all of the project's dependencies by using composer:

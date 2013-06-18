@@ -23,7 +23,7 @@ PHP QR Code Generator has many configurable pieces. To make usage simple the QR 
 
 The big todos left for this projet are:
 
-- [X] generate error codewords
+- [x] generate error codewords
 - [ ] implement mask patterns
 - [ ] test generated qr code
 - [ ] implement code word blocks

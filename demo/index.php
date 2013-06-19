@@ -1,6 +1,3 @@
-<?php
-
-include('../src/QR/QR.php');
-
-$qrCode = QR\QR::generate(isset($_GET['s']) ? $_GET['s'] : '01134');
-$qrCode->printCode();
+<form action="print.php">
+    String to convert: <input name="s" /> <input type="submit" />
+</form>

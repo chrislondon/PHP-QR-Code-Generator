@@ -309,4 +309,15 @@ class CharsetNumeric extends CharsetAbstract {
         
         throw new Exception('Invalid version/mode');
     }
+    
+    public function encodeString($string) {
+        $encodedString = '';
+        
+        $bitGroups = str_split($string, 3);
+        foreach ($bitGroups as $bitGroup) {
+            $encodedString .= str_pad(decbin($bitGroup), 3 * strlen($bitGroup) + 1, '0', STR_PAD_LEFT);
+        }
+        
+        return $encodedString;
+    }
 }

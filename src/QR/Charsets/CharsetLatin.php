@@ -310,4 +310,15 @@ class CharsetLatin extends CharsetAbstract {
         
         throw new Exception('Invalid version/mode');
     }
+    
+    public function encodeString($string) {
+        $encodedString = '';
+        $letters = str_split($string);
+        
+        foreach ($letters as $letter) {
+            $encodedString .= str_pad(decbin(ord($letter)), 8, '0', STR_PAD_LEFT);
+        }
+        
+        return $encodedString;
+    }
 }

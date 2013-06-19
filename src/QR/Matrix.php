@@ -2,6 +2,9 @@
 
 namespace QR;
 
+/**
+ * Class for holding onto the 2D matrix modules
+ */
 class Matrix {
     /**
      * Size of the array
@@ -149,5 +152,20 @@ class Matrix {
      */
     public function getArray() {
         return $this->matrix;
+    }
+    
+    /**
+     * Merge another matrix onto this one
+     * 
+     * @param \QR\Matrix $matrix
+     */
+    public function mergeCodes(Matrix $matrix) {
+        foreach ($matrix->getArray() as $i => $row) {
+            foreach ($row as $j => $val) {
+                if (!is_null($val)) {
+                    $this->matrix[$i][$j] = $val;
+                }
+            }
+        }
     }
 }

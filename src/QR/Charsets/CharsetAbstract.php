@@ -42,6 +42,14 @@ abstract class CharsetAbstract {
     abstract function getCharacterCountBits($version);
     
     /**
+     * Abstract function
+     * 
+     * @param string $string string to be encoded
+     * @return string return the encoded string
+     */
+    abstract function encodeString($string);
+    
+    /**
      * For a given strign and ECL find the best version using the versionCount
      * array
      * 

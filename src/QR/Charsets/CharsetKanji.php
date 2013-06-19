@@ -2,8 +2,10 @@
 
 namespace QR\Charsets;
 
+use Exception;
 use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrection;
+
 
 class CharsetKanji extends CharsetAbstract {
     protected $modeIndicator = '1000';
@@ -308,5 +310,9 @@ class CharsetKanji extends CharsetAbstract {
         }
         
         throw new Exception('Invalid version/mode');
+    }
+    
+    public function encodeString($string) {
+        throw new Exception('NOT IMPLEMENTED');
     }
 }

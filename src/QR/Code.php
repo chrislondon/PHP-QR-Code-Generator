@@ -3,17 +3,12 @@
 namespace QR;
 
 use QR\Charsets\CharsetAbstract;
-use QR\ErrorCorrections\CorrectionInterface;
+use QR\Code;
+use QR\ErrorCorrections\CorrectionAbstract;
 use QR\GeneratorPolynomial;
+use QR\MaskPatterns;
 use QR\MaskPatterns\MaskPatternInterface;
-use QR\MaskPatterns\Pattern000;
-use QR\MaskPatterns\Pattern001;
-use QR\MaskPatterns\Pattern010;
 use QR\MaskPatterns\Pattern011;
-use QR\MaskPatterns\Pattern100;
-use QR\MaskPatterns\Pattern101;
-use QR\MaskPatterns\Pattern110;
-use QR\MaskPatterns\Pattern111;
 use QR\Matrix;
 use QR\MessagePolynomial;
 use QR\Printers\PrinterInterface;
@@ -25,7 +20,7 @@ class Code {
     protected $charset;
     
     /**
-     * @var CorrectionInterface
+     * @var CorrectionAbstract
      */
     protected $correction;
     
@@ -59,26 +54,28 @@ class Code {
      */
     protected $printer;
     
-    public function setMask(MaskPatternInterface $mask) {
-        $this->mask = $mask;
+    /**
+     * Wrapper method to add finder/timing/alignment/etc patterns
+     * 
+     * @param Matrix $code
+     */
+    public function addStaticPatterns(Matrix $code) {
+        $this->addFinderPatterns($code);
+        $this->addTimingPattern($code);
+        $this->addAlignmentPatterns($code);
+        $this->addVersionInformation($code);
+        $this->addFormatInformation($code);  
     }
     
-    public function setCharset(CharsetAbstract $charset) {
-        $this->charset = $charset;
-    }
-    
-    public function setString($string) {
-        $this->string = $string;
-    }
-    
+    /**
+     * Process the QR code.
+     * 
+     * TODO make this function less bloated and more easily tested
+     */
     public function process() {
         // Generate function patterns
         $this->codeFunctions = new Matrix($this->version);
-        $this->addFinderPatterns($this->codeFunctions);
-        $this->addTimingPattern($this->codeFunctions);
-        $this->addAlignmentPatterns($this->codeFunctions);
-        $this->addVersionInformation($this->codeFunctions);
-        $this->addFormatInformation($this->codeFunctions);
+        $this->addStaticPatterns($this->codeFunctions);
                 
         $encodedString = $this->encodeString($this->string);
         $codeWords     = $this->convertToCodeWords($encodedString);
@@ -86,12 +83,8 @@ class Code {
         // TODO fix this hard coded value
         $numberErrorCodewords = 10;
         
-        $messagePolynomial = new MessagePolynomial($codeWords);
-        $messageCount = $messagePolynomial->getCount();
-        $messagePolynomial->multiplyByXn($numberErrorCodewords);
-
+        $messagePolynomial   = new MessagePolynomial($codeWords);
         $generatorPolynomial = new GeneratorPolynomial($numberErrorCodewords);
-        $generatorPolynomial->multiplyByXn($messageCount - 1);
         
         $errorPolynomial = $messagePolynomial->divideBy($generatorPolynomial);
         
@@ -111,53 +104,45 @@ class Code {
         $this->addFormatInformation($this->codeFunctions);
         MaskPatterns::applyMask($this->code, $this->mask);
         
-        
-        $code = $this->mergeCodes($this->code, $this->codeFunctions);
+        $this->code->mergeCodes($this->codeFunctions);
     }
     
+    /**
+     * Convert string to binary string
+     * 
+     * @param string $string
+     * @return string
+     */
     public function encodeString($string) {
-        // TODO this is hard-coded for numeric mode
-        $bitGroups = str_split($string, 3);
-        
         $numericModeIndicator = $this->charset->getModeIndicator();
         
         $characterCount = $this->decBin(strlen($string), $this->charset->getCharacterCountBits($this->version));
         
         $encodedString = $numericModeIndicator . $characterCount;
-                
-        foreach ($bitGroups as $bitGroup) {
-            // TODO this is hard-coded for numeric mode
-            $encodedString .= $this->decBin($bitGroup, 3 * strlen($bitGroup) + 1);
-        }
         
+        $encodedString .= $this->charset->encodeString($string);
+                
         // terminator string
         $encodedString .= '0000';
         
         return $encodedString;
     }
     
-    public function setVersion($version) {
-        $this->version = $version;
-    }
-    
+    /**
+     * Run the string through the selected characterset to find the minimum
+     * version. This will need to be improved when we add optimized string
+     * encoded
+     */
     public function determineVersion() {
         $this->version = $this->charset->getBestVersion($this->string, $this->correction->getLevel());
     }
     
-    public function setErrorCorrection(CorrectionInterface $correction) {
-        $this->correction = $correction;
-    }
-    
+    /**
+     * Send the matrix to the printer
+     */
     public function printCode() {
-        $matrix = $this->mergeCodes();
-        $this->printer->printMatrix($matrix);
+        $this->printer->printMatrix($this->code);
     }
-    
-    public function setPrinter(PrinterInterface $printer) {
-        $this->printer = $printer;
-    }
-    
-    
     
     public function getNumErrorBlocks($version, $ecl) {
         
@@ -171,7 +156,8 @@ class Code {
         }
         
         $codeWordCount = count($codeWords);
-        $totalCodeWordCount = 16; //$this->charset->getCodeWordCount($this->version);
+        
+        $totalCodeWordCount = $this->correction->getDataCodeWordCount($this->version);
         
         // Add pad code words if we didn't fill it up
         $padCodeWords = array('11101100', '00010001');
@@ -183,10 +169,24 @@ class Code {
         return $codeWords;
     }
     
+    /**
+     * Extends the PHP decbin function to add string padding of zeros onto the left
+     * 
+     * @param integer $number the decimal to convert to binary
+     * @param integer $length the minimum length of the binary string
+     * @return string
+     */
     public function decBin($number, $length) {
         return str_pad(decbin($number), $length, '0', STR_PAD_LEFT);
     }
     
+    /**
+     * This function is run twice. Once to return an array of 0's for 
+     * placeholding when we are determining where to add the bit stream. The
+     * other is when we actually have the mask and we're adding it to the matrix
+     * 
+     * @return array
+     */
     public function generateFormatInformation() {
         if (is_null($this->mask)) {
             return $formatInformation = array_fill(0, 15, 0);
@@ -195,28 +195,39 @@ class Code {
         $originalData = $this->correction->getIndicator() . $this->mask->getReference();
         
         // Generate format info
-        $data = ltrim($originalData . '0000000000', '0');
+        $data      = ltrim($originalData . '0000000000', '0');
         $generator = $originialGenerator = '10100110111';        
-                
+
+        // Divide the indicator values from the generator
         do {
             $generator = str_pad($originialGenerator, strlen($data), '0');
+            // XOR the two values which reduces the length by one.
             $data      = decbin(bindec($data) ^ bindec($generator));
         } while (strlen($data) > 10);
+        // once our string is 10 or less digits long, continue;
         
+        // combine the original data with the padded BCH
         $data = $originalData . str_pad($data, 10, '0', STR_PAD_LEFT);
         
+        // Static mask that's to always be used to mask the return string
         $mask = '101010000010010';
         
-        $data = decbin(bindec($data) ^ bindec($mask));
+        // XOR the data with the mask
+        $data = str_pad(decbin(bindec($data) ^ bindec($mask)), 15, '0', STR_PAD_LEFT);
         $data = array_reverse(str_split($data));
         
         return $data;
     }
     
-        
+    /**
+     * Apply format information to matrix
+     * 
+     * @param Matrix $matrix
+     */
     public function addFormatInformation(Matrix $matrix) {
         $size = $matrix->getSize();
-        
+       
+        // Get either the real format information or a temporary place holder
         $formatInformation = $this->generateFormatInformation();
         
         // Add info to matrix
@@ -249,6 +260,12 @@ class Code {
         $matrix->markCode(4 * $matrix->getVersion() + 9, 8, 1);
     }
     
+    /**
+     * Add static finder patterns to the matrix
+     * 
+     * @param Matrix $matrix
+     * @return Code
+     */
     public function addFinderPatterns(Matrix $matrix) {
         $size = $matrix->getSize();
         
@@ -271,6 +288,12 @@ class Code {
         return $this;
     }
     
+    /**
+     * Add extra timing patterns to the matrix
+     * 
+     * @param Matrix $matrix
+     * @return Code
+     */
     public function addTimingPattern(Matrix $matrix) {
         $size = $matrix->getSize();
         
@@ -282,7 +305,12 @@ class Code {
         return $this;
     }
     
-    // TODO make this function dynamic
+    /**
+     * Add alignment patterns to the matrix
+     * 
+     * @param Matrix $matrix
+     * @return Code
+     */
     public function addAlignmentPatterns(Matrix $matrix) {
         $size    = $matrix->getSize();
         $version = $matrix->getVersion();
@@ -302,21 +330,25 @@ class Code {
         }
         
         if ($version > 27) {
+            // TODO make this function dynamic
             $temp = array(26,30,26,30,34,30,34,54,50,54,58,54,58);
             $coordinates[] = $temp[$version - 28];
         }
         
         if ($version > 20) {
+            // TODO make this function dynamic
             $temp = array(28,26,30,28,32,30,34,50,54,52,56,60,58,62,78,76,80,84,82,86);
             $coordinates[] = $temp[$version - 21];
         }
         
         if ($version > 13) {
+            // TODO make this function dynamic
             $temp = array(26,26,26,30,30,30,34,50,50,54,54,58,58,62,74,78,78,82,86,86,90,102,102,106,110,110,114);
             $coordinates[] = $temp[$version - 14];
         }
         
         if ($version > 6) {
+            // TODO make this function dynamic
             $temp = array(22,24,26,28,30,32,34,46,48,50,54,56,58,62,72,74,78,80,84,86,90,98,102,104,108,112,114,118,126,128,132,136,138,142);
             $coordinates[] = $temp[$version - 7];
         }
@@ -340,8 +372,12 @@ class Code {
         return $this;
     }
     
-    
-    
+    /**
+     * Add extra version information to the matrix
+     * 
+     * @param Matrix $matrix
+     * @return Code
+     */    
     public function addVersionInformation(Matrix $matrix) {
         $size    = $matrix->getSize();
         $version = $matrix->getVersion();
@@ -376,6 +412,13 @@ class Code {
         return $this;
     }
     
+    /**
+     * Add the bit stream to the matrix
+     * 
+     * @param int $bitStream
+     * @param Matrix $code
+     * @param Matrix $codeFunctions
+     */
     public function addBitStream($bitStream, Matrix $code, Matrix $codeFunctions) {        
         $size = $code->getSize();
         $maxI = $size / 2 - 1;
@@ -385,8 +428,6 @@ class Code {
         
         for ($i = $maxI; $i >= 0; $i--) {
             for ($j = $maxJ; $j >= 0; $j--) {
-                //$number = $maxJ - $j + ($maxJ + 1) * ($maxI - $i);
-                
                 if (!isset($bitStream[$number])) {
                     $bitStream[$number] = 0;
                 }
@@ -402,7 +443,6 @@ class Code {
                     continue;
                 }
                 
-                
                 $code->markCode($vert, $i * 2 + $j % 2 - $extra, $bitStream[$number]);
                 
                 $number++;
@@ -410,17 +450,61 @@ class Code {
         }
     }
     
-    public function mergeCodes() {
-        $code1 = $this->code->getArray();
-        $code2 = $this->codeFunctions->getArray();
-        foreach ($code2 as $i => $row) {
-            foreach ($row as $j => $val) {
-                if (!is_null($val)) {
-                    $code1[$i][$j] = $val;
-                }
-            }
-        }
-        
-        return new Matrix($code1);
+    /**
+     * GENERIC GETTERS/SETTERS
+     */
+
+    /**
+     * Generic setter for the mask to be used
+     * 
+     * @param MaskPatternInterface $mask
+     */
+    public function setMask(MaskPatternInterface $mask) {
+        $this->mask = $mask;
+    }
+    
+    /**
+     * Generic setter character set to be used
+     * 
+     * @param CharsetAbstract $charset
+     */
+    public function setCharset(CharsetAbstract $charset) {
+        $this->charset = $charset;
+    }
+    
+    /**
+     * Generic setter for the string to be encoded
+     * 
+     * @param string $string
+     */
+    public function setString($string) {
+        $this->string = $string;
+    }
+    
+    /**
+     * Generic setter for the int version number
+     * 
+     * @param int $version
+     */
+    public function setVersion($version) {
+        $this->version = $version;
+    }
+    
+    /**
+     * Generic setter for the error correction level
+     * 
+     * @param CorrectionAbstract $correction
+     */
+    public function setErrorCorrection(CorrectionAbstract $correction) {
+        $this->correction = $correction;
+    }
+    
+    /**
+     * Generic setter for the output printer
+     * 
+     * @param PrinterInterface $printer
+     */
+    public function setPrinter(PrinterInterface $printer) {
+        $this->printer = $printer;
     }
 }

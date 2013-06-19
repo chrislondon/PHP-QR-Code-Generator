@@ -191,7 +191,11 @@ class GF256Polynomial {
      * @return \QR\GF256Polynomial
      */
     public function divideBy(GF256Polynomial $divisor) {
-        $messageExponents = $this->exponents;
+        $count = $this->getCount();
+        $this->multiplyByXn($divisor->getCount() - 1);
+        $divisor->multiplyByXn($count - 1);
+        
+        $messageExponents  = $this->exponents;
         $divisorExponents  = $divisor->getExponents();
         
         do {

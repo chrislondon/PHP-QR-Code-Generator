@@ -7,6 +7,9 @@ use QR\Code;
 use QR\ErrorCorrection;
 use QR\Printers\PrinterHTML;
 
+/**
+ * Autoloader class for all QR classes
+ */
 spl_autoload_register(function($class) {
     if (substr($class, 0, 3) != 'QR\\') {
         return false;
@@ -16,7 +19,18 @@ spl_autoload_register(function($class) {
     return true;
 });
 
+/**
+ * Helper class to make generating QR codes simpler with fewer steps.
+ */
 class QR {
+    /**
+     * Factory function for creating a QR code
+     * 
+     * @param string $string string to be encoded into qr code.
+     * @param string $errorCorrectionLevel Set the desired error correction level
+     * @param int $version optional version to force the QR code to be a certain version
+     * @return \QR\Code
+     */
     public static function generate($string, $errorCorrectionLevel = ErrorCorrection::ECL_M, $version = null) {
         $code = new Code();
         
@@ -24,7 +38,7 @@ class QR {
         $code->setString($string);
         
         $code->setCharset(Charsets::getCharset($string));
-        
+                
         // Inject error corrector into code
         $code->setErrorCorrection(ErrorCorrection::getLevel($errorCorrectionLevel));
         

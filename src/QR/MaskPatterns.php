@@ -30,12 +30,12 @@ class MaskPatterns {
         return $masks;
     }
     
-    public static function setBest(Code &$code) {
+    public static function setBest(Matrix $code) {
         $bestPenalty = $bestMask = null;
         
         foreach (self::getMasks() as $mask) {
-            $tempCode = self::applyMask($code, $mask);
-            $penalty = self::calculatePenalties($tempCode);
+            $tempCode = self::tempApplyMask($code, $mask);
+            $penalty  = self::calculatePenalties($tempCode);
             
             if (is_null($bestMask) || $bestPenalty > $penalty) {
                 $bestPenalty = $penalty;
@@ -43,14 +43,30 @@ class MaskPatterns {
             }
         }
         
-        $code->setMask($bestMask);
+        return $bestMask;
     }
     
-    public static function applyMask($code, MaskPatternInterface $pattern) {
-        foreach ($code as $j => $row) {
-            foreach ($row as $i => $module) {
-                if (!is_null($code[$j][$i]) && $pattern->isReversed($i, $j)) {
-                    $code[$j][$i] = $module ? 0 : 1;
+    public static function applyMask(Matrix &$code, MaskPatternInterface $pattern) {
+        $size = $code->getSize();
+        for ($i = 0; $i < $size; $i++) {
+            for ($j = 0; $j < $size; $j++) {
+                $module = $code->get($i, $j);
+                if (!is_null($module) && $pattern->isReversed($i, $j)) {
+                    $code->markCode($i, $j, $module ? 0 : 1);
+                }
+            }
+        }
+        
+        return $code;
+    }
+    
+    public static function tempApplyMask(Matrix $code, MaskPatternInterface $pattern) {
+        $size = $code->getSize();
+        for ($i = 0; $i < $size; $i++) {
+            for ($j = 0; $j < $size; $j++) {
+                $module = $code->get($i, $j);
+                if (!is_null($module) && $pattern->isReversed($i, $j)) {
+                    $code->markCode($i, $j, $module ? 0 : 1);
                 }
             }
         }

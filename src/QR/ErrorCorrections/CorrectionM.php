@@ -9,4 +9,8 @@ class CorrectionM implements CorrectionInterface {
     public function getLevel() {
         return ErrorCorrection::ECL_M;
     }
+    
+    public function getIndicator() {
+        return '00';
+    }
 }

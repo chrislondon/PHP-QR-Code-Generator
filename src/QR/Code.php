@@ -6,6 +6,14 @@ use QR\Charsets\CharsetAbstract;
 use QR\ErrorCorrections\CorrectionInterface;
 use QR\GeneratorPolynomial;
 use QR\MaskPatterns\MaskPatternInterface;
+use QR\MaskPatterns\Pattern000;
+use QR\MaskPatterns\Pattern001;
+use QR\MaskPatterns\Pattern010;
+use QR\MaskPatterns\Pattern011;
+use QR\MaskPatterns\Pattern100;
+use QR\MaskPatterns\Pattern101;
+use QR\MaskPatterns\Pattern110;
+use QR\MaskPatterns\Pattern111;
 use QR\Matrix;
 use QR\MessagePolynomial;
 use QR\Printers\PrinterInterface;
@@ -66,21 +74,22 @@ class Code {
     public function process() {
         // Generate function patterns
         $this->codeFunctions = new Matrix($this->version);
-        $this->addFinderPatterns($this->codeFunctions, $this->version);
-        $this->addTimingPattern($this->codeFunctions, $this->version);
-        $this->addAlignmentPatterns($this->codeFunctions, $this->version);
-        $this->addVersionInformation($this->codeFunctions, $this->version);
-        $this->addFormatInformation($this->codeFunctions, $this->version);
+        $this->addFinderPatterns($this->codeFunctions);
+        $this->addTimingPattern($this->codeFunctions);
+        $this->addAlignmentPatterns($this->codeFunctions);
+        $this->addVersionInformation($this->codeFunctions);
+        $this->addFormatInformation($this->codeFunctions);
                 
         $encodedString = $this->encodeString($this->string);
         $codeWords     = $this->convertToCodeWords($encodedString);
-        
-        $numberErrorCodewords = 7;
-        
+
+        // TODO fix this hard coded value
+        $numberErrorCodewords = 10;
+
         $messagePolynomial = new MessagePolynomial($codeWords);
         $messageCount = $messagePolynomial->getCount();
         $messagePolynomial->multiplyByXn($numberErrorCodewords);
-        
+
         $generatorPolynomial = new GeneratorPolynomial($numberErrorCodewords);
         $generatorPolynomial->multiplyByXn($messageCount - 1);
         
@@ -88,8 +97,21 @@ class Code {
         
         $errorExponents = $errorPolynomial->getExponents();
         
+        // TODO fix this hard coded value
+        /*$codeWords = array_merge($codeWords, array('10100101', '00100100',
+            '11010100', '11000001', '11101101', '00110110', '11000111', 
+            '10000111', '00101100', '01010101'));
+        */
+        
         foreach ($errorExponents as $exponent) {
             $codeWords[] = $this->decBin($exponent, 8);
+        }
+        
+        foreach ($codeWords as $key => $word) {
+            if ($key % 9 == 0) {
+                echo '<br>';
+            }
+            echo $word . ' ';
         }
         
         $bitStream = join('', $codeWords);
@@ -97,14 +119,13 @@ class Code {
         $this->code = new Matrix($this->version);
         $this->addBitStream($bitStream, $this->code, $this->codeFunctions);
         
-        
-        
+        //$this->mask = MaskPatterns::setBest($this->code);
+        $this->mask = new Pattern011;
+        $this->addFormatInformation($this->codeFunctions);
+        MaskPatterns::applyMask($this->code, $this->mask);
         
         
         $code = $this->mergeCodes($this->code, $this->codeFunctions);
-        
-        $this->printCode($code);
-        die();
     }
     
     public function encodeString($string) {
@@ -116,7 +137,7 @@ class Code {
         $characterCount = $this->decBin(strlen($string), $this->charset->getCharacterCountBits($this->version));
         
         $encodedString = $numericModeIndicator . $characterCount;
-        
+                
         foreach ($bitGroups as $bitGroup) {
             // TODO this is hard-coded for numeric mode
             $encodedString .= $this->decBin($bitGroup, 3 * strlen($bitGroup) + 1);
@@ -162,7 +183,7 @@ class Code {
         }
         
         $codeWordCount = count($codeWords);
-        $totalCodeWordCount = $this->charset->getCodeWordCount($this->version);
+        $totalCodeWordCount = 16; //$this->charset->getCodeWordCount($this->version);
         
         // Add pad code words if we didn't fill it up
         $padCodeWords = array('11101100', '00010001');
@@ -178,39 +199,64 @@ class Code {
         return str_pad(decbin($number), $length, '0', STR_PAD_LEFT);
     }
     
+    public function generateFormatInformation() {
+        if (is_null($this->mask)) {
+            return $formatInformation = array_fill(0, 15, 0);
+        }
+        
+        $originalData = $this->correction->getIndicator() . $this->mask->getReference();
+        
+        // Generate format info
+        $data = ltrim($originalData . '0000000000', '0');
+        $generator = $originialGenerator = '10100110111';        
+                
+        do {
+            $generator = str_pad($originialGenerator, strlen($data), '0');
+            $data      = decbin(bindec($data) ^ bindec($generator));
+        } while (strlen($data) > 10);
+        
+        $data = $originalData . str_pad($data, 10, '0', STR_PAD_LEFT);
+        
+        $mask = '101010000010010';
+        
+        $data = decbin(bindec($data) ^ bindec($mask));
+        $data = array_reverse(str_split($data));
+        
+        return $data;
+    }
+    
         
     public function addFormatInformation(Matrix $matrix) {
         $size = $matrix->getSize();
         
-        $formatInformation = array_fill(0, 15, 0);
+        $formatInformation = $this->generateFormatInformation();
         
-        // TODO actually figure out format information
+        // Add info to matrix
+        $fragment1 = array_reverse(array_slice($formatInformation, 0, 8));
+        $matrix->addPattern($fragment1, 8, $size - 8);
         
-        $fragment = array_reverse(array_slice($formatInformation, 0, 8));
-        $matrix->addPattern($fragment, 8, $size - 8);
-        
-        $fragment = array();
+        $fragment2 = array();
         for ($i = 8; $i < 15; $i++) {
-            $fragment[] = array($formatInformation[$i]);
+            $fragment2[] = array($formatInformation[$i]);
         }
-        $matrix->addPattern($fragment, $size - 7, 8);
+        $matrix->addPattern($fragment2, $size - 7, 8);
         
-        $fragment = array();
+        $fragment3 = array();
         for ($i = 0; $i < 6; $i++) {
-            $fragment[] = array($formatInformation[$i]);
+            $fragment3[] = array($formatInformation[$i]);
         }
-        $matrix->addPattern($fragment, 0, 8);
+        $matrix->addPattern($fragment3, 0, 8);
         
-        $fragment = array();
+        $fragment4 = array();
         for ($i = 6; $i < 8; $i++) {
-            $fragment[] = array($formatInformation[$i]);
+            $fragment4[] = array($formatInformation[$i]);
         }
-        $matrix->addPattern($fragment, 7, 8);
+        $matrix->addPattern($fragment4, 7, 8);
         
         $matrix->markCode(8, 7, $formatInformation[8]);
         
-        $fragment = array_reverse(array_slice($formatInformation, 9, 6));
-        $matrix->addPattern($fragment, 8, 0);
+        $fragment5 = array_reverse(array_slice($formatInformation, 9, 6));
+        $matrix->addPattern($fragment5, 8, 0);
         
         $matrix->markCode(4 * $matrix->getVersion() + 9, 8, 1);
     }

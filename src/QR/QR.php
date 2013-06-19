@@ -17,7 +17,7 @@ spl_autoload_register(function($class) {
 });
 
 class QR {
-    public static function generate($string, $errorCorrectionLevel = ErrorCorrection::ECL_L, $version = null) {
+    public static function generate($string, $errorCorrectionLevel = ErrorCorrection::ECL_M, $version = null) {
         $code = new Code();
         
         // Add our string to the code

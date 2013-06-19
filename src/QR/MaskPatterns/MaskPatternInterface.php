@@ -13,4 +13,5 @@ interface MaskPatternInterface {
      * @param int $j
      */
     public function isReversed($i, $j);
+    public function getReference();
 }

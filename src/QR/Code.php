@@ -85,7 +85,7 @@ class Code {
 
         // TODO fix this hard coded value
         $numberErrorCodewords = 10;
-
+        
         $messagePolynomial = new MessagePolynomial($codeWords);
         $messageCount = $messagePolynomial->getCount();
         $messagePolynomial->multiplyByXn($numberErrorCodewords);
@@ -97,21 +97,8 @@ class Code {
         
         $errorExponents = $errorPolynomial->getExponents();
         
-        // TODO fix this hard coded value
-        /*$codeWords = array_merge($codeWords, array('10100101', '00100100',
-            '11010100', '11000001', '11101101', '00110110', '11000111', 
-            '10000111', '00101100', '01010101'));
-        */
-        
         foreach ($errorExponents as $exponent) {
-            $codeWords[] = $this->decBin($exponent, 8);
-        }
-        
-        foreach ($codeWords as $key => $word) {
-            if ($key % 9 == 0) {
-                echo '<br>';
-            }
-            echo $word . ' ';
+            $codeWords[] = $this->decBin($errorPolynomial->log($exponent), 8);
         }
         
         $bitStream = join('', $codeWords);
@@ -142,6 +129,9 @@ class Code {
             // TODO this is hard-coded for numeric mode
             $encodedString .= $this->decBin($bitGroup, 3 * strlen($bitGroup) + 1);
         }
+        
+        // terminator string
+        $encodedString .= '0000';
         
         return $encodedString;
     }
@@ -175,8 +165,6 @@ class Code {
     
     public function convertToCodeWords($string) {
         $codeWords = str_split($string, 8);
-        
-        // TODO Terminator?
         
         if (strlen($codeWords[count($codeWords) - 1]) < 8) {
             $codeWords[count($codeWords) - 1] = str_pad($codeWords[count($codeWords) - 1], 8, '0');

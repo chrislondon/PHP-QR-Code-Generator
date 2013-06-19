@@ -194,7 +194,7 @@ class GF256Polynomial {
         $messageExponents = $this->exponents;
         $divisorExponents  = $divisor->getExponents();
         
-        do {            
+        do {
             $messEx = $messageExponents[0];
             
             foreach ($divisorExponents as $divisorKey => $divisorExponent) {
@@ -213,7 +213,7 @@ class GF256Polynomial {
             }
             
             array_shift($messageExponents); 
-            array_pop($divisorExponents); 
+            array_pop($divisorExponents);
         } while (is_null($messageExponents[count($messageExponents) - 1]));
         
         $remainderPolynomial = new GF256Polynomial;

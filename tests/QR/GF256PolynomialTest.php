@@ -98,7 +98,7 @@ class GF256PolynomialTest extends PHPUnit_Framework_TestCase {
                 
         $errorCodeWords = array();
         foreach ($errorExponents as $exponent) {
-            $errorCodeWords[] = $code->decBin($exponent, 8);
+            $errorCodeWords[] = $code->decBin($errorPolynomial->log($exponent), 8);
         }
         
         $this->assertEquals(array('10100101', '00100100',

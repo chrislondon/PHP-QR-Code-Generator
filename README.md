@@ -5,7 +5,7 @@ PHP class for generating QR codes, created and maintained by [Chris London](http
 ## Quick start
 
 * [Download repo](https://github.com/chrislondon/PHPQRCodeGenerator/archive/master.zip) or [Fork repo](https://github.com/chrislondon/PHPQRCodeGenerator/fork)
-* [See demo file for quick use](https://github.com/chrislondon/PHPQRCodeGenerator/blob/master/demo/index.php)
+* [See demo file for quick use](https://github.com/chrislondon/PHPQRCodeGenerator/blob/master/demo/print.php)
 
 ## Usage
 

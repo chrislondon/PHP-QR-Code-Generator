@@ -5,6 +5,7 @@ PHP class for generating QR codes, created and maintained by [Chris London](http
 ## Version
 
 v0.1.0
+
 Date: July 1, 2013
 
 ## Quick start

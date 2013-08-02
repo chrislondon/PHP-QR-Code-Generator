@@ -1,12 +1,6 @@
-# PHPQRCodeGenerator v0.0.~1
+# PHPQRCodeGenerator v0.0.1 (July 1, 2013)
 
 PHP class for generating QR codes, created and maintained by [Chris London](http://www.chrislondon.co).
-
-## Version
-
-v0.1.0
-
-Date: July 1, 2013
 
 ## Quick start
 
